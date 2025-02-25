@@ -12,6 +12,7 @@ public class MovieCollection {
         movies = new ArrayList<Movie>();
         cast = new ArrayList<>();
         scan = new Scanner(System.in);
+        start();
     }
 
     public void readData() {
@@ -22,16 +23,18 @@ public class MovieCollection {
                 String data = fileScanner.nextLine();
                 String[] splitData = data.split(",");
                 String title = splitData[0];
-                ArrayList<String> cast = new ArrayList<>();
+                ArrayList<String> currentCast = new ArrayList<>();
+                splitData[1] += "|";
                 while (splitData[1].contains("|")) {
                     cast.add(splitData[1].substring(0, splitData[1].indexOf("|")));
+                    currentCast.add(splitData[1].substring(0, splitData[1].indexOf("|")));
                     splitData[1] = splitData[1].substring(splitData[1].indexOf("|") + 1);
                 }
                 String director = splitData[2];
                 String overview = splitData[3];
                 int runtime = Integer.parseInt(splitData[4]);
                 double userRating = Double.parseDouble(splitData[5]);
-                Movie movie = new Movie(title, cast, director, overview, runtime, userRating);
+                Movie movie = new Movie(title, currentCast, director, overview, runtime, userRating);
                 movies.add(movie);
             }
         } catch(IOException exception) {
@@ -47,6 +50,8 @@ public class MovieCollection {
             }
             movies.set(elementIndex,moviePulled);
         }
+
+
     }
 
     public void mainMenu() {
@@ -67,6 +72,7 @@ public class MovieCollection {
                 searchCast();
             } else if (menuOption.equals("q")) {
                 System.out.println("Goodbye!");
+                break;
             } else {
                 System.out.println("Invalid choice!");
             }
@@ -93,8 +99,9 @@ public class MovieCollection {
             System.out.print("Enter number: ");
             int infoNum = scan.nextInt();
             scan.nextLine();
-            printMovieInfo(movieSearch.get(movieNum));
+            printMovieInfo(movieSearch.get(infoNum - 1));
         }
+        mainMenu();
     }
 
     private void searchCast() {
@@ -113,12 +120,18 @@ public class MovieCollection {
                 }
                 if (!alreadySearched) {
                     castNum++;
-                    System.out.println(castNum + ". " + cast.get(i));
                     searchedCast.add(cast.get(i));
                 }
             }
             alreadySearched = false;
         }
+
+        orderCast(searchedCast);
+
+        for (int i = 0; i < searchedCast.size(); i++) {
+            System.out.println(i+1 + ". " + searchedCast.get(i));
+        }
+
         if (castNum == 0) {
             System.out.println("No cast members by this name exists!");
         } else {
@@ -127,20 +140,35 @@ public class MovieCollection {
             int num = scan.nextInt();
             scan.nextLine();
 
-            int movieNum = 0;
-            for (int i = 0; i < movies.size(); i++) {
-                if (movies.get(i).getCast().contains(searchedCast.get(num))) {
-                    movieNum++;
-                    System.out.println(movieNum + ". " + movies.get(i).getTitle());
-                }
-            }
-            System.out.print("Which movie would you like to learn more about?");
-            System.out.print("Enter number: ");
-            int movieNumber = scan.nextInt();
-            scan.nextLine();
-            printMovieInfo(movies.get(movieNumber));
+            searchCastMovie(searchedCast.get(num - 1));
+
 
         }
+        mainMenu();
+    }
+
+    private void searchCastMovie(String castName) {
+        ArrayList<Movie> searchedMovies = new ArrayList<>();
+        int movieNum = 0;
+
+        for (int i = 0; i < movies.size(); i++) {
+            for (int j = 0; j < movies.get(i).getCast().size(); j++) {
+                String currentMember = movies.get(i).getCast().get(j);
+                if (currentMember.equals(castName)) {
+                    movieNum++;
+                    System.out.println(movieNum + ". " + movies.get(i).getTitle());
+                    searchedMovies.add(movies.get(i));
+                }
+            }
+        }
+
+        System.out.println("Which movie would you like to learn more about?");
+        System.out.print("Enter number: ");
+        int movieNumber = scan.nextInt();
+        scan.nextLine();
+        printMovieInfo(searchedMovies.get(movieNumber - 1));
+
+
     }
 
     private void printMovieInfo(Movie movie) {
@@ -156,5 +184,22 @@ public class MovieCollection {
         }
         System.out.println("\nOverview: " + movie.getOverview());
         System.out.println("User Rating: " + movie.getUserRating());
+    }
+
+    private void orderCast(ArrayList<String> castList) {
+        for (int i = 1; i < castList.size(); i++) {
+            int elementIndex = i;
+            String castPulled = castList.get(i);
+            while (elementIndex > 0 && castPulled.compareTo(castList.get(elementIndex-1)) < 0) {
+                castList.set(elementIndex,castList.get(elementIndex-1));
+                elementIndex--;
+            }
+            castList.set(elementIndex,castPulled);
+        }
+    }
+
+    private void start() {
+        readData();
+        mainMenu();
     }
 }

@@ -17,7 +17,7 @@ public class Movie {
         this.userRating = userRating;
     }
 
-    public String  getTitle() {
+    public String getTitle() {
         return title;
     }
 
